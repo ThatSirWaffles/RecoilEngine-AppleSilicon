@@ -174,3 +174,7 @@ build-*
 # IDE
 /.idea
 .kilo
+
+# macOS port: local build dependencies and packaged app output
+/deps
+/release-artifacts

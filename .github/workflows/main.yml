@@ -1,0 +1,29 @@
+name: Build macOS Release
+
+on:
+	push:
+		tags:
+			- "v*"
+	workflow_dispatch:
+
+jobs:
+	build:
+		runs-on: macos-26
+
+		steps:
+			- name: Checkout
+				uses: actions/checkout@v4
+
+			- name: Build app
+				run: make app
+
+			- name: Find artefacts
+				run: |
+					mkdir -p release
+					find . -type f \( -name "*.dmg" -o -name "*.zip" \) \
+						-exec cp {} release/ \;
+
+			- name: Create GitHub Release
+				uses: softprops/action-gh-release@v2
+				with:
+					files: release/*

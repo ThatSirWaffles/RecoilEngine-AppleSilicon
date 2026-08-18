@@ -1,29 +1,26 @@
-name: Build macOS Release
+name: Build macOS App
 
 on:
-	push:
-		tags:
-			- "v*"
-	workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-	build:
-		runs-on: macos-26
+  build:
+    runs-on: macos-26
 
-		steps:
-			- name: Checkout
-				uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-			- name: Build app
-				run: make app
+      - name: Build app
+        run: make app
 
-			- name: Find artefacts
-				run: |
-					mkdir -p release
-					find . -type f \( -name "*.dmg" -o -name "*.zip" \) \
-						-exec cp {} release/ \;
-
-			- name: Create GitHub Release
-				uses: softprops/action-gh-release@v2
-				with:
-					files: release/*
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: bar-launcher-macos
+          path: |
+            **/*.dmg
+            **/*.zip

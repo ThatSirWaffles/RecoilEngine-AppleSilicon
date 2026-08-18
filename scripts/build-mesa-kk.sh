@@ -36,6 +36,7 @@ patch_list() { ls "$PATCH_DIR"/*.patch 2>/dev/null | sort; }
 want_stamp() {
   echo "mesa_commit=$MESA_COMMIT"
   echo "spirv_xlat=$SPIRV_XLAT_TAG"
+  echo "install_names=@rpath"
   local p
   for p in $(patch_list); do
     echo "patch=$(basename "$p"):$(shasum -a 256 "$p" | cut -d' ' -f1)"
@@ -181,22 +182,21 @@ mkdir -p "$MESA_PREFIX"
 rm -rf "$STAGE"
 
 # meson baked the neutral prefix into each dylib's install name (LC_ID_DYLIB)
-# and into its inter-library dependencies. /opt/bar-driver does not exist on
-# this machine, so unless these are repointed nothing OUTSIDE a bundle can load
-# the driver — visreg, perf-bench, run-spring.sh and the certify replay all run
-# the raw binary against $MESA_PREFIX. packaging/release-build.sh rewrites these
-# to @rpath when it stages the .app, and its builder-path audit scans the
-# resulting bundle, so the absolute path used here never reaches a shipped
-# artifact.
+# and into its inter-library dependencies. Use @rpath in the installed driver
+# rather than $MESA_PREFIX: the latter is often under /Users on CI and would
+# leak the builder path into the dylibs. Raw development binaries receive
+# $MESA_PREFIX/lib as an rpath from build-engine.sh; release staging keeps the
+# same @rpath names and resolves them inside the app bundle.
 for d in "$MESA_PREFIX"/lib/*.dylib; do
   [ -L "$d" ] && continue
   chmod u+w "$d"
-  install_name_tool -id "$MESA_PREFIX/lib/$(basename "$d")" "$d" 2>/dev/null || true
+  base=$(basename "$d")
+  install_name_tool -id "@rpath/$base" "$d" 2>/dev/null || true
   for dep in $(otool -L "$d" | tail -n +2 | awk '{print $1}' | grep "^$NEUTRAL_PREFIX/" || true); do
-    install_name_tool -change "$dep" "$MESA_PREFIX/lib/$(basename "$dep")" "$d" 2>/dev/null || true
+    install_name_tool -change "$dep" "@rpath/$(basename "$dep")" "$d" 2>/dev/null || true
   done
 done
-echo "install names repointed from $NEUTRAL_PREFIX to $MESA_PREFIX"
+echo "install names repointed from $NEUTRAL_PREFIX to @rpath"
 
 # The ICD json's library_path is absolute and now names the neutral prefix,
 # which does not exist. Repoint it at the real install location so non-bundled
@@ -222,7 +222,7 @@ ls "$MESA_PREFIX/share/vulkan/icd.d/" 2>/dev/null || true
 # silently misses debug-map/symbol-table paths.
 leaks=0
 for d in "$MESA_PREFIX"/lib/*.dylib; do
-  hits="$(LC_ALL=C grep -a -o '/Users/[^ "]\{0,120\}' "$d" 2>/dev/null | sort -u || true)"
+  hits="$(LC_ALL=C grep -a -o '/Users/[^ "]\{0,120\}' "$d" 2>/dev/null | LC_ALL=C sort -u || true)"
   [ -z "$hits" ] || { n=$(echo "$hits" | wc -l | tr -d ' '); echo "FATAL: $(basename "$d") embeds $n /Users/ path(s):"; echo "$hits" | head -5 | sed 's/^/    /'; leaks=$((leaks+n)); }
 done
 [ "$leaks" -eq 0 ] || { echo "FATAL: driver embeds $leaks builder-path string(s) — see LESSON-41"; exit 1; }

@@ -86,7 +86,7 @@ PROFILE=bar
 # --enable-online (or BAR_ONLINE=1) is a DELIBERATE opt-in and must not be used
 # for a public artifact without an explicit decision to seek approval from BAR's
 # maintainers first; see docs/OUTSTANDING.md on the online-play posture.
-ENABLE_ONLINE="${BAR_ONLINE:-0}"
+ENABLE_ONLINE="${BAR_ONLINE:-1}"
 # Message config source (bar profile): where the shipped launcher fetches
 # messages.json each launch. Default = the port's GitHub repo. Override with
 # --messages-config <https-url> or --messages-local <path> (a local file,

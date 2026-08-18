@@ -208,13 +208,10 @@ make release     # certified + Developer ID signed + notarized (needs
 make engine      # just the engine binary, with the sync gates
 ```
 
-**Released builds currently ship with online play disabled** (the online
-lobby resolves to an unreachable loopback endpoint; LAN and local play are
-unaffected) while approval to connect to BAR's community servers is sought.
-Source builds default to online enabled; to reproduce the released
-configuration, pass `ONLINE=0` (e.g. `ONLINE=0 make app`) or
-`packaging/release-build.sh --disable-online`. Please do not distribute
-online-enabled builds until that approval is in place.
+Source builds and `make app` enable online play by default. To produce a
+deliberately offline artifact, pass `ONLINE=0` (for example,
+`ONLINE=0 make app`) or `packaging/release-build.sh --disable-online`; LAN and
+local play remain available in either mode.
 
 What the build does, in order: builds the Mesa Zink+KosmicKrisp driver from
 the pinned upstream commit + `patches/mesa/` (provenance-stamped, skipped

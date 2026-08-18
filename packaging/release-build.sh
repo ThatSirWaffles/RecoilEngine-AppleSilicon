@@ -72,20 +72,16 @@ PORTVER="$(cat "$PKG/PORT_VERSION" 2>/dev/null | tr -d '[:space:]')"
 #            and dylib closure, no game configuration or branding. For any
 #            Spring/Recoil game community, or for building other helpers on.
 PROFILE=bar
-# Online play (bar profile): **DISABLED by default, and that is a standing rule,
-# not a per-release choice** (user decision, 2026-08-08). Every release so far has
-# been respun with --disable-online before shipping — v0.11 and v0.12 both were —
-# so the default was a trap: it made the safe outcome depend on someone
-# remembering a flag, and forgetting it publishes a build that reaches BAR's real
-# lobby servers. The default now matches the rule.
+# Online play (bar profile): ENABLED by default for source builds and local
+# packages. Pass --disable-online (or BAR_ONLINE=0 / ONLINE=0 through make) when
+# producing a deliberately offline artifact.
 #
 # Disabled means the staged chobby_config.json points the lobby at an unreachable
 # loopback endpoint and the launcher shows a once-per-version notice. Engine-level
 # networking (direct/LAN) is untouched either way.
 #
-# --enable-online (or BAR_ONLINE=1) is a DELIBERATE opt-in and must not be used
-# for a public artifact without an explicit decision to seek approval from BAR's
-# maintainers first; see docs/OUTSTANDING.md on the online-play posture.
+# --enable-online (or BAR_ONLINE=1) is retained as an explicit override for
+# callers that want to document the intended online-enabled build.
 ENABLE_ONLINE="${BAR_ONLINE:-1}"
 # Message config source (bar profile): where the shipped launcher fetches
 # messages.json each launch. Default = the port's GitHub repo. Override with
@@ -124,8 +120,8 @@ while [ $# -gt 0 ]; do
     --version) VERSION=$2; VERSION_EXPLICIT=1; shift 2;;
     --port-version) PORTVER=$2; shift 2;;
     --profile) PROFILE=$2; shift 2;;
-    --enable-online) ENABLE_ONLINE=1; shift;;   # DELIBERATE opt-in; never for a public artifact
-    --disable-online) ENABLE_ONLINE=0; shift;;  # now the default; kept for explicitness
+    --enable-online) ENABLE_ONLINE=1; shift;;
+    --disable-online) ENABLE_ONLINE=0; shift;;
     --messages-config) MESSAGES_CONFIG=$2; shift 2;;
     --messages-local)
       [ -f "$2" ] || { echo "FATAL: --messages-local $2: no such file"; exit 2; }

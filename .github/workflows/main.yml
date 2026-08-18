@@ -1,0 +1,32 @@
+name: Build macOS DMG
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    # macos-14 and macos-latest use Apple Silicon (M1/M2) runners
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Run Build Pipeline
+        run: |
+          # The Makefile automatically handles installing LLVM 19, SDL2, etc.
+          # Passing ONLINE=0 to match the recommended release configuration
+          ONLINE=0 make app
+
+      - name: Upload DMG Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BAR-Launcher-DMG
+          path: packaging/*.dmg

@@ -482,6 +482,22 @@ strip_foreign_rpaths() { # strip_foreign_rpaths <macho>
 for m in "$MACOS/spring" "$MACOS/pr-downloader" "$FRAMEWORKS"/*.dylib; do
   strip_foreign_rpaths "$m"
 done
+# The native AI dylibs (C interface + Skirmish AIs) are built by the engine
+# CMake build and inherit the SAME build-tree LC_RPATH ($MESA_PREFIX/lib) via
+# CMAKE_BUILD_RPATH. They are staged into Resources/AI — not Frameworks — so
+# the loops above never stripped them: the CI builder's absolute Mesa prefix
+# (/Users/runner/work/...) survived into the bundle and tripped the
+# builder-path audit below (LESSON-41 class). They link only system libs
+# (CUtils is static), so deleting the foreign rpath changes no dependency
+# resolution; it only removes the leaked builder path. chmod u+w first,
+# exactly like bundle_deps / the strip -S pass below, so install_name_tool
+# can rewrite the build-tree dylibs.
+while IFS= read -r m; do
+  chmod u+w "$m" 2>/dev/null || true
+  strip_foreign_rpaths "$m"
+done <<EOF
+$(find "$RESOURCES/AI" -name '*.dylib' 2>/dev/null)
+EOF
 for d in "$FRAMEWORKS"/*.dylib; do
   install_name_tool -add_rpath "@loader_path" "$d" 2>/dev/null || true
 done

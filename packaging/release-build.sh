@@ -685,7 +685,12 @@ ENTITLEMENTS="$PKG/entitlements.plist"
 # DISABLED; identity builds keep the strict entitlements (same-team dylibs
 # validate fine). Ship artifacts are always identity-signed.
 if [ "$IDENTITY" = "-" ]; then
-  ENTITLEMENTS=$(mktemp -t entitlements-adhoc).plist
+  # macOS-native AND GNU-coreutils-safe. The BSD `-t prefix` form is rejected
+  # by GNU mktemp ("too few X's in template"), which CI's gnubin puts first on
+  # PATH; an explicit X-run template is valid on both. Creating the final
+  # .plist directly also avoids leaking the placeholder file the old
+  # `$(mktemp -t ...).plist` form left behind.
+  ENTITLEMENTS=$(mktemp "${TMPDIR:-/tmp}/entitlements-adhoc.XXXXXX.plist")
   sed 's|<key>com.apple.security.cs.disable-library-validation</key><false/>|<key>com.apple.security.cs.disable-library-validation</key><true/>|' \
     "$PKG/entitlements.plist" > "$ENTITLEMENTS"
   echo "(ad-hoc: library validation disabled for local smoke — NOT a ship config)"
@@ -698,6 +703,9 @@ for b in "$MACOS"/*; do
     codesign --force --options runtime --timestamp --entitlements "$ENTITLEMENTS" -s "$IDENTITY" "$b"
 done
 codesign --force --options runtime --timestamp --entitlements "$ENTITLEMENTS" -s "$IDENTITY" "$APP"
+# ad-hoc temp entitlements no longer needed; never touch the tracked
+# $PKG/entitlements.plist used by identity builds
+[ "$IDENTITY" = "-" ] && rm -f "$ENTITLEMENTS"
 
 # HARD GATE: a release artifact must never carry get-task-allow
 if codesign -d --entitlements - --xml "$APP/Contents/MacOS/spring" 2>/dev/null | grep -q "get-task-allow"; then

@@ -15,6 +15,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
+
+      - name: Check required files
+        run: |
+          git submodule status --recursive
+          ls -la testkit/
+          ls -la testkit/libm-refs/
 
       - name: Build app
         run: make app

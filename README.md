@@ -193,8 +193,8 @@ patch series (`patches/mesa/`), the driver/engine build scripts
 The build fetches the small BYAR-Chobby launcher configuration from pinned
 commit `e0217bd2064821ac66afe760faa6c3d755287a84` and verifies its SHA-256
 checksum; the game content itself is still downloaded by the launcher at first
-run. The libm parity references are tracked in `logs/`, alongside the original
-shipping pipeline results.
+run. The libm parity references are tracked in `testkit/libm-refs/`; the older
+copies in `logs/` preserve their original shipping-pipeline provenance.
 
 Prerequisites: an Apple Silicon Mac on macOS 26+, Xcode Command Line Tools,
 and [Homebrew](https://brew.sh) — the build installs the packages it needs

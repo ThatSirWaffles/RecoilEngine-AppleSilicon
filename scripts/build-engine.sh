@@ -149,11 +149,11 @@ fi
 #    homebrew gcc and relink. Gate: 9/9 hash match vs the gcc x86 VM reference.
 if [ -f "$SRC/rts/lib/streflop/libm/dbl-64/w_aliases.cpp" ]; then
   LANE=glibc-import
-  REF="$BAR/logs/double-fn-2025lane-clang.txt"
+  REF="$BAR/testkit/libm-refs/double-fn-2025lane-clang.txt"
   echo "streflop lane: glibc-import (pure clang, no dbl-64 swap)"
 else
   LANE=submodule
-  REF="$BAR/logs/double-fn-vm26.txt"
+  REF="$BAR/testkit/libm-refs/double-fn-vm26.txt"
   "$BAR/scripts/gcc-dbl64-swap.sh" "$BUILD"
   for tgt in spring spring-headless; do
     (cd "$BUILD" && eval "$(ninja -t commands "$tgt" | tail -1)")
@@ -163,11 +163,11 @@ fi
 # Verification gate: the archive must reproduce the lane's reference libm
 # hashes; hard-fails the build otherwise.
 # FAIL CLOSED. This used to be a bare `if [ -f "$REF" ]` with no else, and the
-# references lived in gitignored logs/ — so on a fresh clone, a new machine, or
-# after anyone cleaned logs/, the ONLY artifact-level FP-parity check silently
-# vanished and the build still printed ENGINE_BUILD_OK. "The reference is
-# missing" is not consent; it is the one condition under which this gate must
-# shout. (Adversarial harness audit, 2026-08-07.)
+# references were absent from the clean checkout — so a new machine could not
+# run the artifact-level FP-parity check. The canonical references now live in
+# tracked testkit/libm-refs/. "The reference is missing" is not consent; it is
+# the one condition under which this gate must shout. (Adversarial harness
+# audit, 2026-08-07.)
 for _req in "$REF" "$BAR/scripts/dfp-small.cpp"; do
   [ -f "$_req" ] || { echo "FATAL: libm parity gate cannot run — missing $_req"; \
                       echo "  (lane=$LANE) Refusing to report a build as good without it."; exit 2; }

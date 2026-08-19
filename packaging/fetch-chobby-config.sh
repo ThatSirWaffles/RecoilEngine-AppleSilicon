@@ -4,7 +4,7 @@ set -euo pipefail
 
 BAR="${BAR:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONFIG_COMMIT="e0217bd2064821ac66afe760faa6c3d755287a84"
-CONFIG_SHA256="d37bf2a8c5b5ce3e2728b9df8db2f04b46b0a4dc1ff1e34df4d0b8b495cbfc1"
+CONFIG_SHA256="d37bf2a8c5b5ce3e2728b9df8db2f04b46b0a4dc1ff1e34df4d0b8b495cbcfc1"
 CONFIG_URL="https://raw.githubusercontent.com/beyond-all-reason/BYAR-Chobby/${CONFIG_COMMIT}/dist_cfg/config.json"
 OUT_DIR="${BAR_CHOBBY_CONFIG_DIR:-$BAR/deps/byar-chobby-config-$CONFIG_COMMIT}"
 OUT_FILE="$OUT_DIR/config.json"

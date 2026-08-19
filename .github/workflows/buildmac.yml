@@ -16,16 +16,13 @@ jobs:
         with:
           submodules: recursive
           lfs: true
-<<<<<<< HEAD
-=======
 
       - name: Check required files
         run: |
           git submodule status --recursive
           ls -la testkit/
           ls -la testkit/libm-refs/
->>>>>>> f9e5528fd106f95559c05e10055068e183483cb2
-
+          
       - name: Build app
         run: make app
 

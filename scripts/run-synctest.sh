@@ -4,7 +4,6 @@ set -euo pipefail
 
 BAR="${BAR:-$(cd "$(dirname "$0")/.." && pwd)}"
 BUILD_DIR="${SYNCTEST_BUILD_DIR:-$BAR/build-synctest}"
-OUTPUT_PREFIX="${SYNCTEST_OUTPUT_PREFIX:-$BUILD_DIR/streflop_results_NEON_arm64}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -12,6 +11,8 @@ while [ $# -gt 0 ]; do
     *) echo "unknown arg: $1"; exit 2;;
   esac
 done
+
+OUTPUT_PREFIX="${SYNCTEST_OUTPUT_PREFIX:-$BUILD_DIR/streflop_results_NEON_arm64}"
 
 REFERENCE="$BAR/tools/sync-test/reference/streflop_results_NEON_arm64.bin"
 COMPARATOR="$BAR/tools/sync-test/compare_results.py"

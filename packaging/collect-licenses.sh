@@ -6,7 +6,13 @@ set -euo pipefail
 
 DEST=${1:?dest dir}
 BAR="${BAR:-$(cd "$(dirname "$0")/.." && pwd)}"
-SRC="${ENGINE_SRC:-$BAR/engine-2025.06.24}"
+# Engine source: same resolution as release-build.sh / build-engine.sh (and
+# release-build.sh passes ENGINE_SRC explicitly). The old default
+# $BAR/engine-2025.06.24 died on 2026-08-07 when the pinned lane was
+# consolidated into this repo's rts/ tree (LESSON-59 class — do not pin a
+# checkout path; follow the build dir / ENGINE_SRC, else the repo root when it
+# IS the engine, else $BAR/engine).
+SRC="${ENGINE_SRC:-$([ -d "$BAR/rts" ] && echo "$BAR" || echo "$BAR/engine")}"
 mkdir -p "$DEST"
 fail=0
 
@@ -21,7 +27,12 @@ grab() { # grab <dest-name> <candidate paths...>
 
 brewdir() { brew --prefix "$1" 2>/dev/null || echo "/nonexistent"; }
 
-grab GPL-2.0.txt            "$SRC/COPYING"
+# Engine GPL-2.0 text: this repo's LICENSE is the verbatim GPL-2.0 text
+# (commit f79cecbd11 deliberately made LICENSE the full license so GitHub's
+# detector reports GPL-2.0); its COPYING is only a "see LICENSE" pointer.
+# Prefer LICENSE; keep COPYING as a fallback for upstream-style engine trees
+# whose COPYING holds the full text.
+grab GPL-2.0.txt            "$SRC/LICENSE" "$SRC/COPYING"
 grab LGPL-2.1.txt           "$(brewdir openal-soft)/COPYING" "$(brewdir openal-soft)/share/licenses/openal-soft/COPYING"
 grab FTL.txt                "$(brewdir freetype)/LICENSE.TXT" "$(brewdir freetype)/docs/FTL.TXT"
 grab Zlib.txt               "/opt/homebrew/opt/sdl2/LICENSE.txt" "$(brewdir sdl2)/LICENSE.txt" "$(brewdir sdl2)/share/licenses/sdl2/LICENSE.txt"

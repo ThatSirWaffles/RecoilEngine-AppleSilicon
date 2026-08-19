@@ -22,11 +22,7 @@ jobs:
           git submodule status --recursive
           ls -la testkit/
           ls -la testkit/libm-refs/
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> 5b6c8b37b405e18cf030dd0a608d7968b5a5e74d
       - name: Build app
         run: make app
 

@@ -190,10 +190,16 @@ top of the upstream release tag, written to be upstreamable piecewise.
 Everything needed ships in this repository — the engine source, the Mesa
 patch series (`patches/mesa/`), the driver/engine build scripts
 (`scripts/`), and the packaging pipeline (`packaging/`, `Makefile`).
+The build fetches the small BYAR-Chobby launcher configuration from pinned
+commit `e0217bd2064821ac66afe760faa6c3d755287a84` and verifies its SHA-256
+checksum; the game content itself is still downloaded by the launcher at first
+run. The libm parity references are tracked in `logs/`, alongside the original
+shipping pipeline results.
 
 Prerequisites: an Apple Silicon Mac on macOS 26+, Xcode Command Line Tools,
 and [Homebrew](https://brew.sh) — the build installs the packages it needs
-(SDL2, LLVM 19 for the driver compile, openal-soft, …) as it goes.
+(SDL2, GCC for the fleet-parity object swap, LLVM 19 for the driver compile,
+openal-soft, …) as it goes.
 
 ```sh
 make app         # the BAR launcher package: pinned Mesa driver (cached

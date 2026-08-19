@@ -149,11 +149,11 @@ fi
 #    homebrew gcc and relink. Gate: 9/9 hash match vs the gcc x86 VM reference.
 if [ -f "$SRC/rts/lib/streflop/libm/dbl-64/w_aliases.cpp" ]; then
   LANE=glibc-import
-  REF="$BAR/testkit/libm-refs/double-fn-2025lane-clang.txt"
+  REF="$BAR/logs/double-fn-2025lane-clang.txt"
   echo "streflop lane: glibc-import (pure clang, no dbl-64 swap)"
 else
   LANE=submodule
-  REF="$BAR/testkit/libm-refs/double-fn-vm26.txt"
+  REF="$BAR/logs/double-fn-vm26.txt"
   "$BAR/scripts/gcc-dbl64-swap.sh" "$BUILD"
   for tgt in spring spring-headless; do
     (cd "$BUILD" && eval "$(ninja -t commands "$tgt" | tail -1)")
@@ -223,7 +223,7 @@ echo "ENGINE_BUILD_OK"
 # ---- opt-in test stages (see header) ------------------------------------------
 if [ "$WITH_SYNCTEST" = "1" ]; then
   echo "=== opt-in: sync-test"
-  ENGINE_SRC="$SRC" "$BAR/scripts/run-synctest.sh"
+  ENGINE_SRC="$SRC" bash "$BAR/scripts/run-synctest.sh"
 fi
 if [ "$WITH_VISREG" = "1" ]; then
   echo "=== opt-in: visreg (visual/artifact regression$([ "$WITH_PERF" = 1 ] && echo ", perf gate"))"

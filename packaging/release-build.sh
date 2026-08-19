@@ -189,7 +189,7 @@ echo "port version: $PORTVER (user-facing release number)"
 
 echo "=== [1b/7] streflop cross-arch sync-test (bit-exactness vs committed refs)"
 if [ "$RUN_SYNC_TEST" = "1" ]; then
-  ENGINE_SRC="$SRC" "$BAR/scripts/run-synctest.sh" --build-dir "$BUILD/synctest"
+  ENGINE_SRC="$SRC" bash "$BAR/scripts/run-synctest.sh" --build-dir "$BUILD/synctest"
 else
   echo "WARNING: sync-test SKIPPED (opt-in as of 2026-07-20)."
   echo "         A shipping artifact must have passed it — run with"
@@ -318,10 +318,17 @@ test -s "$RESOURCES/LuaUI/ctrlpanel.txt" || { echo "FATAL: cont/LuaUI/ctrlpanel.
 test -s "$RESOURCES/cmdcolors.txt" || { echo "FATAL: cont/cmdcolors.txt missing from $SRC"; exit 1; }
 if [ "$PROFILE" = "bar" ]; then
   # BAR launcher config (chobby_config.json + default springsettings), extracted
-  # from the canonical dist_cfg the official launcher uses; the launcher deploys
-  # these at runtime (see launcher.sh). Without chobby_config.json the lobby
-  # black-screens (game=generic -> Chobby shuts down).
-  python3 "$PKG/extract-launcher-config.py" "$BAR/chobby/dist_cfg/config.json" "$RESOURCES" \
+  # from the pinned BYAR-Chobby dist_cfg the official launcher uses; the
+  # launcher deploys these at runtime (see launcher.sh). Without
+  # chobby_config.json the lobby black-screens (game=generic -> Chobby shuts
+  # down).
+  if [ -n "${CHOBBY_CONFIG_FILE:-}" ]; then
+    CHOBBY_CONFIG="$CHOBBY_CONFIG_FILE"
+  else
+    CHOBBY_CONFIG="$(bash "$PKG/fetch-chobby-config.sh")"
+  fi
+  [ -f "$CHOBBY_CONFIG" ] || { echo "FATAL: launcher config missing: $CHOBBY_CONFIG"; exit 1; }
+  python3 "$PKG/extract-launcher-config.py" "$CHOBBY_CONFIG" "$RESOURCES" \
     || { echo "FATAL: could not extract BAR launcher config from dist_cfg"; exit 1; }
   # BAR_CONTENT_TAGS: DIAGNOSTIC ONLY. Overrides the rapid tags the bundle
   # downloads (normally byar:test + byar-chobby:test, i.e. exactly what the

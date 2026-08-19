@@ -32,7 +32,7 @@ FORCE="${MESA_FORCE_REBUILD:-0}"
 mkdir -p "$DEPS"
 
 # ---- provenance: what driver SHOULD be at the prefix -----------------------
-patch_list() { ls "$PATCH_DIR"/*.patch 2>/dev/null | sort; }
+patch_list() { ls "$PATCH_DIR"/*.patch 2>/dev/null | LC_ALL=C sort; }
 want_stamp() {
   echo "mesa_commit=$MESA_COMMIT"
   echo "spirv_xlat=$SPIRV_XLAT_TAG"
@@ -74,7 +74,7 @@ echo "=== [1/4] Homebrew dependencies ==="
 # Engine deps + Mesa build deps. Individually so one failure doesn't kill the rest.
 for pkg in sdl2 libpng libjpeg-turbo libogg libvorbis freetype glm libomp \
            vulkan-headers vulkan-loader molten-vk devil ccache \
-           meson pkg-config bison flex llvm@19 libclc glslang spirv-tools \
+           meson pkg-config bison flex gcc llvm@19 libclc glslang spirv-tools \
            p7zip openal-soft minizip; do
   brew list "$pkg" &>/dev/null || brew install "$pkg" || echo "WARN: brew install $pkg failed"
 done

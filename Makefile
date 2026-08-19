@@ -5,8 +5,8 @@
 # targets exist so the build is discoverable and one-command.
 #
 #   make app            # build + package (headless-safe): ad-hoc Beyond All
-#                       # Reason.app + .zip + .dmg. Fast; no GPU/content/long
-#                       # tests. Runs on THIS Mac; won't pass Gatekeeper elsewhere.
+#                       # Reason.app + .zip + .dmg, including normal sync gates.
+#                       # No GPU/content/replay certification. Runs on THIS Mac.
 #   make certify        # certify tier (needs an Apple Silicon GPU + content):
 #                       # build + package + replay-determinism cert + GPU driver
 #                       # smoke. This is the long one (tens of minutes).
@@ -18,9 +18,10 @@
 #   make engine         # just the engine binary (no bundle) — build + sync gates
 #   make clean-artifacts# remove staged bundles/zips/dmgs
 #
-# Tiers mirror upstream Recoil CI: the build workflow only builds + packages;
-# gameplay/replay validation is separate and opt-in. Build machines use `make
-# app`; certification runs on a real Apple Silicon Mac. See README.md
+# Tiers mirror upstream Recoil CI: the build workflow builds + packages and
+# runs the normal deterministic gates; replay/GPU validation is separate and
+# opt-in. Build machines use `make app`; certification runs on a real Apple
+# Silicon Mac. See README.md
 # "Building the macOS app". Full flag surface: packaging/release-build.sh.
 
 IDENTITY ?=
@@ -47,7 +48,7 @@ help:
 	@echo "  ONLINE=0 make ...      disable online play (enabled by default)"
 
 app:
-	packaging/release-build.sh $(VERSION_ARG) $(ONLINE_ARG)
+	packaging/release-build.sh --with-synctest $(VERSION_ARG) $(ONLINE_ARG)
 
 engine-dist:
 	packaging/release-build.sh --profile engine $(VERSION_ARG)
@@ -64,7 +65,7 @@ release:
 	  $(VERSION_ARG) $(ONLINE_ARG)
 
 engine:
-	scripts/build-engine.sh
+	scripts/build-engine.sh --with-synctest
 
 test:
 	packaging/test/message-check-test.sh

@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
 
       - name: Build app
         run: make app
@@ -25,4 +26,3 @@ jobs:
           name: bar-launcher-macos
           path: |
             **/*.dmg
-            **/*.zip

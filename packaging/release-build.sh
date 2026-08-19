@@ -180,7 +180,17 @@ ENGINE_SRC="$SRC" ENGINE_BUILD="$BUILD" MESA_PREFIX="$MESA_PREFIX" "$BAR/scripts
 # are exactly the engine's own version (e.g. "2025.06.24"). Unless --version
 # forced a value.
 if [ "$VERSION_EXPLICIT" = "0" ]; then
-  VERSION="$("$BUILD/spring" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}\.[0-9]{2}[^ ]*' | head -1)"
+  VERSION_OUTPUT=$("$BUILD/spring" --version 2>&1) || {
+    echo "FATAL: $BUILD/spring --version failed:" >&2
+    echo "$VERSION_OUTPUT" >&2
+    exit 1
+  }
+  VERSION=$(printf '%s\n' "$VERSION_OUTPUT" | awk '
+    match($0, /[0-9][0-9][0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][^ ]*/) {
+      print substr($0, RSTART, RLENGTH)
+      exit
+    }
+  ')
   [ -n "$VERSION" ] || { echo "FATAL: could not read engine version from $BUILD/spring --version"; exit 1; }
 fi
 echo "version: $VERSION (engine-reported; = fleet version identity)"

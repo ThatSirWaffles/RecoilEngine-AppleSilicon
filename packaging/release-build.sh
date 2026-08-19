@@ -175,23 +175,17 @@ ENGINE_SRC="$SRC" ENGINE_BUILD="$BUILD" MESA_PREFIX="$MESA_PREFIX" "$BAR/scripts
 # build-engine.sh hard-fails unless the streflop archive reproduces the
 # lane's libm parity hashes — "bare ninja" output can't reach the steps below.
 
-# Version identity: read it from the binary the fleet will version-check
-# against, so the bundle's CFBundleShortVersionString and the artifact names
-# are exactly the engine's own version (e.g. "2025.06.24"). Unless --version
-# forced a value.
+# Version identity: ask the engine for its sync version, the exact identity the
+# fleet version-checks against. This avoids parsing human-readable --version
+# output and keeps the bundle metadata tied to the built binary.
 if [ "$VERSION_EXPLICIT" = "0" ]; then
-  VERSION_OUTPUT=$("$BUILD/spring" --version 2>&1) || {
-    echo "FATAL: $BUILD/spring --version failed:" >&2
+  VERSION_OUTPUT=$("$BUILD/spring" --sync-version 2>&1) || {
+    echo "FATAL: $BUILD/spring --sync-version failed:" >&2
     echo "$VERSION_OUTPUT" >&2
     exit 1
   }
-  VERSION=$(printf '%s\n' "$VERSION_OUTPUT" | awk '
-    match($0, /[0-9][0-9][0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][^ ]*/) {
-      print substr($0, RSTART, RLENGTH)
-      exit
-    }
-  ')
-  [ -n "$VERSION" ] || { echo "FATAL: could not read engine version from $BUILD/spring --version"; exit 1; }
+  VERSION=$(printf '%s\n' "$VERSION_OUTPUT" | awk 'NF { line = $0 } END { print line }')
+  [ -n "$VERSION" ] || { echo "FATAL: could not read engine sync version from $BUILD/spring --sync-version"; exit 1; }
 fi
 echo "version: $VERSION (engine-reported; = fleet version identity)"
 [ -n "$PORTVER" ] || { echo "FATAL: no port version (packaging/PORT_VERSION missing and no --port-version)"; exit 1; }

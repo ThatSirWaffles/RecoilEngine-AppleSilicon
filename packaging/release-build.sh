@@ -392,6 +392,20 @@ cp "$MESA_PREFIX"/lib/libvulkan_kosmickrisp.dylib "$FRAMEWORKS/"
 # /opt/homebrew/lib via env; user machines have nothing there (caught by the
 # 6d GUI smoke: "ZINK: failed to load libvulkan.1.dylib")
 cp -L /opt/homebrew/lib/libvulkan.1.dylib "$FRAMEWORKS/libvulkan.1.dylib"
+# Homebrew's `sdl2` is now sdl2-compat: libSDL2-2.0.0.dylib is a thin shim that
+# loads the REAL SDL3 at runtime through an LC_RPATH into the sdl3 keg
+# (sdl3 is installed :no_linkage, so it is neither under /opt/homebrew/lib nor
+# a load-command dependency — bundle_deps and the closure audit never see it,
+# and strip_foreign_rpaths removes that keg rpath from the shim). Without SDL3
+# beside it the engine aborts at launch with "Failed loading SDL3 library".
+# Ship SDL3 next to the shim, exactly as sdl2-compat's README prescribes
+# ("include it with the library if necessary"); the Frameworks normalization
+# below re-IDs it to @rpath and the @loader_path rpath on the shim resolves it.
+SDL3_PREFIX="$(brew --prefix sdl3 2>/dev/null || true)"
+if [ -n "$SDL3_PREFIX" ] && [ -f "$SDL3_PREFIX/lib/libSDL3.0.dylib" ]; then
+  cp -L "$SDL3_PREFIX/lib/libSDL3.0.dylib" "$FRAMEWORKS/libSDL3.0.dylib"
+  echo "bundled SDL3 runtime (sdl2-compat shim dependency)"
+fi
 # normalize install-name IDs of directly-staged driver dylibs (bundle_deps
 # only re-IDs libraries it discovers as dependencies)
 for d in "$FRAMEWORKS"/*.dylib; do
